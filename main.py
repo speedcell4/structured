@@ -1,17 +1,19 @@
-from data_structure import DataSet
-import tensorflow as tf
-import numpy as np
 import cPickle
-import time
 import logging
-from models import  StructureModel, Trainer
+
+import numpy as np
+import tensorflow as tf
 import tqdm
+
+from data_structure import DataSet
+from models import StructureModel
+
 
 def load_data(config):
     train, dev, test, embeddings, vocab = cPickle.load(open(config.data_file))
     trainset, devset, testset = DataSet(train), DataSet(dev), DataSet(test)
 
-    vocab = dict([(v.index,k) for k,v in vocab.items()])
+    vocab = dict([(v.index, k) for k, v in vocab.items()])
     trainset.sort()
     train_batches = trainset.get_batches(config.batch_size, config.epochs, rand=True)
     dev_batches = devset.get_batches(config.batch_size, 1, rand=False)
@@ -34,9 +36,10 @@ def get_conll(instance_lst):
             for j, token in enumerate(tokens):
                 ret += '{}\t{}\t_\t_\t_\t_\t{}\t_\t_\t_\n'.format(j + 1, token, int(heads[j] + 1))
             ret += '========\n'
-            ret += np.array_str(str_scores_lst[i])+'\n'
+            ret += np.array_str(str_scores_lst[i]) + '\n'
             ret += '========\n'
     return ret
+
 
 def evaluate(sess, model, test_batches):
     corr_count, all_count = 0, 0
@@ -49,7 +52,8 @@ def evaluate(sess, model, test_batches):
         corr_count += np.sum(predictions == feed_dict[model.t_variables['gold_labels']])
         all_count += len(batch)
     acc_test = 1.0 * corr_count / all_count
-    return  acc_test
+    return acc_test
+
 
 def run(config):
     import random
@@ -57,7 +61,7 @@ def run(config):
     hash = random.getrandbits(32)
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    ah = logging.FileHandler(str(hash)+'.log')
+    ah = logging.FileHandler(str(hash) + '.log')
     ah.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(message)s')
     ah.setFormatter(formatter)
@@ -67,7 +71,7 @@ def run(config):
     print(embedding_matrix.shape)
     config.n_embed, config.d_embed = embedding_matrix.shape
 
-    config.dim_hidden = config.dim_sem+config.dim_str
+    config.dim_hidden = config.dim_sem + config.dim_str
 
     print(config.__flags)
     logger.critical(str(config.__flags))
@@ -88,9 +92,9 @@ def run(config):
 
         for ct, batch in tqdm.tqdm(train_batches, total=num_steps):
             feed_dict = model.get_feed_dict(batch)
-            outputs,_,_loss = sess.run([model.final_output, model.opt, model.loss], feed_dict=feed_dict)
-            loss+=_loss
-            if(ct%config.log_period==0):
+            outputs, _, _loss = sess.run([model.final_output, model.opt, model.loss], feed_dict=feed_dict)
+            loss += _loss
+            if ct % config.log_period == 0:
                 acc_test = evaluate(sess, model, test_batches)
                 acc_dev = evaluate(sess, model, dev_batches)
                 print('Step: {} Loss: {}\n'.format(ct, loss))
@@ -101,4 +105,3 @@ def run(config):
                 logger.debug('Dev  ACC: {}\n'.format(acc_dev))
                 logger.handlers[0].flush()
                 loss = 0
-

@@ -2,7 +2,6 @@ import os
 
 import tensorflow as tf
 
-
 from main import run as m
 
 # options = dict( rnn_cell='lstm', mode='two-structure', data_file='yelp-2013-largevocab3.pkl',
@@ -40,6 +39,7 @@ def main(_):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu)
 
     m(config)
+
 
 if __name__ == "__main__":
     tf.app.run()

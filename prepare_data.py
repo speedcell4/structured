@@ -2,18 +2,20 @@ from data_structure import Corpus
 import argparse
 
 import cPickle
+
+
 def main(train_path, dev_path, test_path):
     corpus = Corpus()
     corpus.load(train_path, 'train')
     corpus.load(dev_path, 'dev')
     corpus.load(test_path, 'test')
     corpus.preprocess()
-    options =  dict(max_sents=60, max_tokens=100, skip_gram=False, emb_size=200)
+    options = dict(max_sents=60, max_tokens=100, skip_gram=False, emb_size=200)
     print('Start training word embeddings')
     corpus.w2v(options)
 
     instance, instance_dev, instance_test, embeddings, vocab = corpus.prepare(options)
-    cPickle.dump((instance, instance_dev, instance_test, embeddings, vocab),open('../data/yelp-2013-all.pkl','w'))
+    cPickle.dump((instance, instance_dev, instance_test, embeddings, vocab), open('../data/yelp-2013-all.pkl', 'w'))
 
 
 parser = argparse.ArgumentParser(description='Process some integers.')
